@@ -6,13 +6,12 @@ import time
 import datetime
 import signal
 
-REF_PIN=21
-LED_PIN=20
+REF_PIN=24
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(REF_PIN,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 
-#current = int(datetime.datetime.now().second) + int(datetime.datetime.now().microsecond)*0.000001
+#current = int(datetime.datetime.now().second) + int(datetime.datetime.now().millisecond)*0.001
 current = 0
 old = 0
 dtime = 0
@@ -22,14 +21,15 @@ counter = 0
 def event_callback(gpio_pin):
     global current
     old = current
-    current = int(datetime.datetime.now().second) + int(datetime.datetime.now().microsecond)*0.000001
+    current = int(round(time.time() * 1000))
     dtime = current - old
-    if dtime<0:
-        dtime = current + 60 - old
+    dtime = dtime * 0.001
+    #if dtime<0:
+    #    dtime = current + 60 - old
     print(dtime)
 
 GPIO.add_event_detect(REF_PIN,GPIO.RISING,
-                        callback=event_callback,bouncetime=10)
+                        callback=event_callback,bouncetime=70)
 
 try:
     while True:
