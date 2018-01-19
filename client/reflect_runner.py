@@ -111,26 +111,63 @@ def power(sw_gpio,led_gpio):
 """
 
 
-"""
-RIGHT = 
-LEFT = 
+
+RIGHT = 05
+LEFT = 06
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(RIGHT,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(LEFT,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(RIGHT,GPIO.IN)
+GPIO.setup(LEFT,GPIO.IN)
+#GPIO.setup(RIGHT,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+#GPIO.setup(LEFT,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 angle = 0
 
-def 
+"""
+def angle_right(gpio_pin):
+    global angle
+    angle += 15
+    if angle == 360:
+        angle = 0
+
+def angle_left(gpio_pin):
+    global angle
+    angle -= 15
+    if angle == -360:
+        angle = 0
 
 GPIO.add_event_detect(RIGHT,GPIO.RISING,
                         callback=angle_right,bouncetime=500)
 GPIO.add_event_detect(LEFT,GPIO.RISING,
                         callback=angle_left,bouncetime=500)
 """
-
+def turn(right_gpio,left_gpio):
+    global angle
+    right = GPIO.input(right_gpio)
+    left = GPIO.input(left_gpio)
+    if right:
+        angle = 15
+        params = {'angle' : angle}
+        try:
+            send_ref.send_ref(url_angle,params)
+        except:
+            pass
+        print(angle)
+        angle = 0
+        time.sleep(0.2)
+    elif left:
+        angle = -15
+        params = {'angle' : angle}
+        try:
+            send_ref.send_ref(url_angle,params)
+        except:
+            pass
+        print(angle)
+        angle = 0
+        time.sleep(0.2)
 
 try:
     while True: 
         power(SW,LED)
+        turn(RIGHT,LEFT)
         continue
 except KeyboardInterrupt:
     signal.alarm(0)
