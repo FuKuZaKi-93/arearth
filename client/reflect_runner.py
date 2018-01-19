@@ -4,8 +4,12 @@
 import RPi.GPIO as GPIO
 import time, signal
 
+import send_ref
+url_count = 'http://192.168.1.89:8000/cgi-bin/app.py'
+url_flag = 'http://192.168.1.89:8000/cgi-bin/app.py'
 
-REF_PIN=21
+
+REF_PIN=24
 
 #GPIO.cleanup()
 
@@ -22,48 +26,15 @@ GPIO.add_event_detect(REF_PIN,GPIO.RISING,
                         callback=event_callback,bouncetime=10)
 
 
-#import power_count
-
-SW = 26
-LED = 16
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(SW,GPIO.IN)
-GPIO.setup(LED,GPIO.OUT)
-num = 0
-status = False
-
-def power(sw_gpio,led_gpio):
-    global num
-    global status
-    sw = GPIO.input(sw_gpio)
-    if sw:
-        num += 1
-        print(num)
-    if num %2 == 0:
-        GPIO.output(led_gpio,GPIO.HIGH)
-        status = False
-        time.sleep(0.2)
-    if num %2 == 1:
-        GPIO.output(led_gpio,GPIO.LOW)
-        status = True
-        time.sleep(0.2)
-
-
-import send_ref
-url    = 'http://192.168.1.89:8000/cgi-bin/app.py'
-
-
 sigtime = 1
 
 def handler(signum, frame):
     global counter
-    global status
     params = {
               'count' : counter,
-              'flag'  : status,
               }
     try:
-        send_ref.send_ref(url,params)
+        send_ref.send_ref(url_count,params)
     except:
         pass
     print params
@@ -73,6 +44,88 @@ def handler(signum, frame):
 signal.signal(signal.SIGALRM, handler)
 
 signal.alarm(sigtime)
+
+
+
+SW = 26
+LED = 16
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(SW,GPIO.IN)
+#GPIO.setup(SW,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(LED,GPIO.OUT)
+status = False
+
+"""
+def event_callback_flag(gpio_pin):
+    global status
+    if status == False:
+        status = True
+        GPIO.output(LED,GPIO.LOW)
+    elif status == True:
+        status = False
+        GPIO.output(LED,GPIO.HIGH)
+    print(status)
+
+GPIO.add_event_detect(SW,GPIO.RISING,
+                        callback=event_callback_flag,bouncetime=1000)
+"""
+
+def power(sw_gpio,led_gpio):
+    global status
+    sw = GPIO.input(sw_gpio)
+    if sw:
+        if status == False:	
+            GPIO.output(led_gpio,GPIO.LOW)
+            status = True
+            params = {
+                      'flag'  : status,
+                     }
+            try:
+                send_ref.send_ref(url_flag,params)
+            except:
+                pass
+            print(status)
+            time.sleep(0.2)
+        elif status == True:
+            GPIO.output(led_gpio,GPIO.HIGH)
+            status = False
+            params = {
+                      'flag'  : status,
+                     }
+            try:
+                send_ref.send_ref(url_flag,params)
+            except:
+                pass
+            print(status)
+            time.sleep(0.2)
+"""
+    if sw:
+        params = {
+                  'flag'  : status,
+                 }
+        try:
+            send_ref.send_ref(url_flag,params)
+        except:
+            pass
+#        print(status)
+"""
+
+
+"""
+RIGHT = 
+LEFT = 
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(RIGHT,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(LEFT,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+angle = 0
+
+def 
+
+GPIO.add_event_detect(RIGHT,GPIO.RISING,
+                        callback=angle_right,bouncetime=500)
+GPIO.add_event_detect(LEFT,GPIO.RISING,
+                        callback=angle_left,bouncetime=500)
+"""
 
 
 try:
